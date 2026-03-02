@@ -13,11 +13,11 @@ The PHIA data used in this analysis are available upon request from the PHIA dat
 UNAIDS Estimates 2024 Spectrum files were sources from (https://hivtools.unaids.org/spectrum-file-request/)  
 
 # Usage and project structure
-Step 1: Data preparation: data preparation code are in data_preparation.R and include code to read in surveys, functions required to clean data and define core variables
-Step 2: Data exploration: data exploration code and code for plotting core figure are in exploration and figures script
-Step 3: Compute survey weighted viral load suppression estimates for all surveys using survey_vls_estimates and by age and sex using survey_vls_estimates_age_sex
-Step 4: Model fitting using brms: fit Weibull, reverse Weibull, Frechet, gamma and lognormal models to PHIA survey data to obtain pooled shape estimates (brms_regression) and sex and age specific shape estimates (brms_regression_sex)
-Step 5: Compute adjusted viral load suppression estimate at recommended threshold (<1000) from <50, <200 or <400 copies/mL using the explore distributions and parameters
+1. Data preparation: data preparation code are in data_preparation.R and include code to read in surveys, functions required to clean data and define core variables
+2. Data exploration: data exploration code and code for plotting core figure are in exploration and figures script
+3. Compute survey weighted viral load suppression estimates for all surveys using survey_vls_estimates and by age and sex using survey_vls_estimates_age_sex
+4. Model fitting using brms: fit Weibull, reverse Weibull, Frechet, gamma and lognormal models to PHIA survey data to obtain pooled shape estimates (brms_regression) and sex and age specific shape estimates (brms_regression_sex)
+5. Compute adjusted viral load suppression estimate at recommended threshold (<1000) from <50, <200 or <400 copies/mL using the explore distributions and parameters
 Using: 
   - adjusted_new_params: using parameters from Johnson et al and PHIA calibrated paramaters
   - adjusted_age_phia_params: using age-specific parameters from PHIA calibration
@@ -26,8 +26,8 @@ Using:
   - adjusted_age_gamma_frechet: using age-specific parameters from PHIA calibration
   - adjusted_sex_gamm_frechet: using sex-specific parameters from PHIA calibration
   - adjusted_pareto: using plausible paramaters for the Pareto distribution
-Step 6: Pareto simulations: using plausible parameters for the Pareto distribution we explore the lower bound of the location parameter required to achieve different levels of VLS
-Step 7: Sensitivity analyses: repeat analyses using subset of people with HIV experienced on ART (>12 months) and from earlier PHIAs. 
+6. Pareto simulations: using plausible parameters for the Pareto distribution we explore the lower bound of the location parameter required to achieve different levels of VLS
+7. Sensitivity analyses: repeat analyses using subset of people with HIV experienced on ART (>12 months) and from earlier PHIAs. 
 
 # Plots
 Code for scatter plots comparing adjusted vs. observed VLS estimates are in scripts for step 5, while code for other plots and tables are in exploration and figures script.
