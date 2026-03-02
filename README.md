@@ -2,9 +2,9 @@
 Validating HIV viral suppression threshold adjustments for comparable estimates using data from nationally representative household surveys in sub-Saharan Africa
 
 # Project description
-Using nationally representative Population-based HIV Impact Assessment surveys (PHIAs) from sub-Saharan Africa, we aimed to (1) evaluate the models estimated by Johnson et al. in African populations; (2) compare alternative statistical models for describing observed VL distributions; and (3) assess sex and age differences in VL distribution parameters among PLHIV on ART in sub-Saharan Africa. 
+Using nationally representative Population-based HIV Impact Assessment surveys (PHIAs) from sub-Saharan Africa this analyses aimed to (1) evaluate the models estimated by Johnson et al. in African populations; (2) compare alternative statistical models for describing observed VL distributions; and (3) assess sex and age differences in VL distribution parameters among PLHIV on ART in sub-Saharan Africa. 
 
-# Installation or setup 
+# Setup 
 Analysis were conducted in R version 4.3.1 and packages required for analysis are specified in individual R scripts
 
 # Data 
@@ -31,5 +31,6 @@ Using:
 
 # Plots
 Code for scatter plots comparing adjusted vs. observed VLS estimates are in scripts for step 5, while code for other plots and tables are in exploration and figures script.
+
 # License
   Creative Commons Attribution’ (CC BY)
