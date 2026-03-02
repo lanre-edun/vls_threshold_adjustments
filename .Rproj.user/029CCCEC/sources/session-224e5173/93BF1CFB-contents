@@ -1,0 +1,410 @@
+source(file = "C:/Users/LanreEdun/OneDrive - Imperial College London/R projects/viremia_thresholds/R/data_preparation.R")
+#' select analytic variables and merge all surveys for plotting
+
+table(ssa_surveys$country, useNA = "always")
+table(ssa_surveys$country, ssa_surveys$viral_sup1000, useNA = "always")
+table(ssa_surveys$country, ssa_surveys$viral_sup400, useNA = "always")
+table(ssa_surveys$country, ssa_surveys$viral_sup200, useNA = "always")
+table(ssa_surveys$country, ssa_surveys$viral_sup50, useNA = "always")
+
+table(ssa_surveys_art$resultvlc_numeric, useNA = "always")
+
+
+#' scatter plot showing relationship between empirical and adjusted viral suppression estimates
+#' combine all estimates derived in adjusted_vls_estimates script
+all_distributions <- bind_rows(rev_weib_50, rev_weib_200, rev_weib_400,
+                               weib_50, weib_200, weib_400,
+                               pareto_50, pareto_200, pareto_400)
+
+#' update country names to survey names
+all_distributions <- all_distributions %>%
+  mutate(country_names = case_when(survey == "BAIS_2021" ~ "Botswana (2021)",
+                                   survey == "CAMPHIA_2017" ~ "Cameroon (2017-18)",
+                                   survey == "CIPHIA_2017" ~ "Côte d'Ivoire (2017-18)",
+                                   survey == "EPHIA_2017" ~ "Ethiopia (2017-18)",
+                                   survey == "INSIDA_2021" ~ "Mozambique (2021-22)",
+                                   survey == "KENPHIA_2018" ~ "Kenya (2018-19)",
+                                   survey == "LePHIA_2016" ~ "Lesotho (2016-17)",
+                                   survey == "LePHIA_2020" ~ "Lesotho (2019-20)",
+                                   survey == "MPHIA_2015" ~ "Malawi (2015-16)",
+                                   survey == "MPHIA_2020" ~ "Malawi (2020-21)",
+                                   survey == "NAIIS_2018" ~ "Nigeria (2018)",
+                                   survey == "NAMPHIA_2017" ~ "Namibia (2017)",
+                                   survey == "RPHIA_2018" ~ "Rwanda (2018-19)",
+                                   survey == "SHIMS2_2016" ~ "Eswatini (2016-17)",
+                                   survey == "SHIMS3_2021"  ~ "Eswatini (2021)",
+                                   survey == "THIS_2016" ~ "Tanzania (2016-17)",
+                                   survey == "UPHIA_2016" ~ "Uganda (2016-17)",
+                                   survey == "ZAMPHIA_2016" ~ "Zambia (2016)",
+                                   survey == "ZAMPHIA_2021" ~ "Zambia (2021)",
+                                   survey == "ZIMPHIA_2015" ~ "Zimbabwe (2015-16)" ,
+                                   survey == "ZIMPHIA_2020" ~ "Zimbabwe (2019-20)",
+                                   TRUE ~ survey))
+                                   
+table(all_distributions$country_names, useNA = "always")
+
+#' order estimates threshold from lowest to highest
+all_distributions$estimate_threshold <- factor(all_distributions$estimate_threshold, 
+                                               levels = c("<50 copies/mL", "<200 copies/mL", "<400 copies/mL"))
+
+#' order distributions for plotting
+all_distributions$distribution <- factor(all_distributions$distribution,
+                                         levels = c("Reverse Weibull", "Weibull", "Pareto"))
+
+all_distributions$country_names <- factor(all_distributions$country_names,
+                                          levels = c("Côte d'Ivoire (2017-18)","Cameroon (2017-18)",
+                                                     "Nigeria (2018)","Uganda (2016-17)",
+                                                     "Zimbabwe (2015-16)","Tanzania (2016-17)",
+                                                     "Ethiopia (2017-18)","Lesotho (2016-17)",
+                                                     "Zambia (2016)","Mozambique (2021-22)",
+                                                     "Rwanda (2018-19)","Zimbabwe (2019-20)",
+                                                     "Kenya (2018-19)","Malawi (2015-16)",
+                                                     "Namibia (2017)","Eswatini (2016-17)",
+                                                     "Lesotho (2019-20)",
+                                                     "Eswatini (2021)","Zambia (2021)",
+                                                     "Malawi (2020-21)", "Botswana (2021)"))
+
+## scatter plot
+ggplot(all_distributions, aes(x = empirical_estimate, y = adjusted_vls_estimate, color = country_names)) +
+  geom_point(size = 2) +
+  geom_errorbar(data = all_distributions, 
+                aes(y = adjusted_vls_estimate, ymin = adjusted_vls_lower_ci, 
+                    ymax = adjusted_vls_upper_ci), linewidth = 0.75, alpha = 0.3) + 
+  geom_errorbarh(data = all_distributions, 
+                aes(xmin = empirical_lower_ci, 
+                    xmax = empirical_upper_ci), linewidth = 0.75, alpha = 0.3) + 
+  scale_x_continuous(limits = c(0.6, 1), labels = scales::percent) +
+  scale_y_continuous(limits = c(0.6, 1), labels = scales::percent) +
+  coord_fixed() +
+  geom_abline(intercept = 0, slope = 1, col = "darkgrey", linewidth = 0.9, linetype = "dashed") +
+  theme_bw(base_size = 13) +
+  scale_color_manual(values = c("dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", 
+                                "black", "gold1", "skyblue2", "palegreen2", "#FDBF6F", "gray70",
+                                "maroon", "orchid1", "darkturquoise", "darkorange4", "brown",
+                                "cyan", "red", "gold4", "orange", "blue")) +
+  facet_grid(estimate_threshold~distribution) + 
+  labs(x = "% viral load suppression (PHIA survey)", y = "% viral load suppression (adjusted)", color = "") + 
+  theme(legend.position = "right",
+        axis.text = element_text(size = rel(1), family = "sans"),
+        axis.title = element_text(size = rel(1.0), family = "sans"),
+        strip.text = element_text(size = rel(1.0), family = "sans", face = "bold"),
+        legend.text = element_text(size = rel(0.9), family = "sans"),
+        panel.grid = element_blank(), 
+        panel.spacing.x = unit(1, "lines"))
+
+#' by gender
+#' scatter plot showing relationship between empirical and adjusted viral suppression estimates
+#' combine all estimates derived in adjusted_vls_estimates script
+#' males
+all_distributions_male <- bind_rows(rev_weib_50_male, rev_weib_200_male, rev_weib_400_male,
+                                    weib_50_male, weib_200_male, weib_400_male,
+                                    pareto_50_male, pareto_200_male, pareto_400_male)
+
+#' update country names to survey names
+all_distributions_male <- all_distributions_male %>%
+  mutate(country_names = case_when(survey == "BAIS_2021" ~ "Botswana (2021)",
+                                   survey == "CAMPHIA_2017" ~ "Cameroon (2017-18)",
+                                   survey == "CIPHIA_2017" ~ "Côte d'Ivoire (2017-18)",
+                                   survey == "EPHIA_2017" ~ "Ethiopia (2017-18)",
+                                   survey == "INSIDA_2021" ~ "Mozambique (2021-22)",
+                                   survey == "KENPHIA_2018" ~ "Kenya (2018-19)",
+                                   survey == "LePHIA_2016" ~ "Lesotho (2016-17)",
+                                   survey == "LePHIA_2020" ~ "Lesotho (2019-20)",
+                                   survey == "MPHIA_2015" ~ "Malawi (2015-16)",
+                                   survey == "MPHIA_2020" ~ "Malawi (2020-21)",
+                                   survey == "NAIIS_2018" ~ "Nigeria (2018)",
+                                   survey == "NAMPHIA_2017" ~ "Namibia (2017)",
+                                   survey == "RPHIA_2018" ~ "Rwanda (2018-19)",
+                                   survey == "SHIMS2_2016" ~ "Eswatini (2016-17)",
+                                   survey == "SHIMS3_2021"  ~ "Eswatini (2021)",
+                                   survey == "THIS_2016" ~ "Tanzania (2016-17)",
+                                   survey == "UPHIA_2016" ~ "Uganda (2016-17)",
+                                   survey == "ZAMPHIA_2016" ~ "Zambia (2016)",
+                                   survey == "ZAMPHIA_2021" ~ "Zambia (2021)",
+                                   survey == "ZIMPHIA_2015" ~ "Zimbabwe (2015-16)" ,
+                                   survey == "ZIMPHIA_2020" ~ "Zimbabwe (2019-20)",
+                                   TRUE ~ survey))
+
+table(all_distributions_male$country_names, useNA = "always")
+
+#' order estimates threshold from lowest to highest
+all_distributions_male$estimate_threshold <- factor(all_distributions_male$estimate_threshold, 
+                                               levels = c("<50 copies/mL", "<200 copies/mL", "<400 copies/mL"))
+
+#' order distributions for plotting
+all_distributions_male$distribution <- factor(all_distributions_male$distribution,
+                                         levels = c("Reverse Weibull", "Weibull", "Pareto"))
+
+all_distributions_male$country_names <- factor(all_distributions_male$country_names,
+                                          levels = c("Côte d'Ivoire (2017-18)","Cameroon (2017-18)",
+                                                     "Nigeria (2018)","Uganda (2016-17)","Zimbabwe (2015-16)",
+                                                     "Tanzania (2016-17)","Ethiopia (2017-18)","Lesotho (2016-17)",
+                                                     "Zambia (2016)","Mozambique (2021-22)","Rwanda (2018-19)",
+                                                     "Zimbabwe (2019-20)","Kenya (2018-19)","Malawi (2015-16)",
+                                                     "Namibia (2017)","Eswatini (2016-17)","Lesotho (2019-20)",
+                                                     "Eswatini (2021)","Zambia (2021)","Malawi (2020-21)", "Botswana (2021)"))
+
+all_distributions_male <- all_distributions_male %>% mutate(sex = rep("Men"))
+
+## scatter plot
+ggplot(all_distributions_male, aes(x = empirical_estimate, y = adjusted_vls_estimate, color = country_names)) +
+  geom_point(size = 2) +
+  geom_errorbar(data = all_distributions_male, 
+                aes(y = adjusted_vls_estimate, ymin = adjusted_vls_lower_ci, 
+                    ymax = adjusted_vls_upper_ci), linewidth = 0.75, alpha = 0.3) + 
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_cartesian(xlim = c(0.5,1), ylim = c(0.5,1)) +
+  geom_abline(intercept = 0, slope = 1, col = "darkgrey", linewidth = 0.9, linetype = "dashed") +
+  theme_bw(base_size = 13) +
+  scale_color_manual(values = c("dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", 
+                                "black", "gold1", "skyblue2", "palegreen2", "#FDBF6F", "gray70",
+                                "maroon", "orchid1", "darkturquoise", "darkorange4", "brown",
+                                "cyan", "red", "gold4", "orange","blue" )) +
+  facet_grid(estimate_threshold~distribution) + 
+  labs(x = "% viral load suppression (PHIA survey)",
+       y = "% viral load suppression (adjusted)", color = "",
+       tag = "A. Men") + 
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = rel(1), family = "sans"),
+        axis.title = element_text(size = rel(1.0), family = "sans"),
+        strip.text = element_text(size = rel(1.0), family = "sans", face = "bold"),
+        legend.text = element_text(size = rel(1.0), family = "sans"),
+        panel.grid = element_blank(),
+        plot.tag = element_text(size = rel(1.0), family = "sans", face = "bold"))
+
+#' females
+all_distributions_female <- bind_rows(rev_weib_50_female, rev_weib_200_female, rev_weib_400_female,
+                                    weib_50_female, weib_200_female, weib_400_female,
+                                    pareto_50_female, pareto_200_female, pareto_400_female)
+
+#' update country names to survey names
+all_distributions_female <- all_distributions_female %>%
+  mutate(country_names = case_when(survey == "BAIS_2021" ~ "Botswana (2021)",
+                                   survey == "CAMPHIA_2017" ~ "Cameroon (2017-18)",
+                                   survey == "CIPHIA_2017" ~ "Côte d'Ivoire (2017-18)",
+                                   survey == "EPHIA_2017" ~ "Ethiopia (2017-18)",
+                                   survey == "INSIDA_2021" ~ "Mozambique (2021-22)",
+                                   survey == "KENPHIA_2018" ~ "Kenya (2018-19)",
+                                   survey == "LePHIA_2016" ~ "Lesotho (2016-17)",
+                                   survey == "LePHIA_2020" ~ "Lesotho (2019-20)",
+                                   survey == "MPHIA_2015" ~ "Malawi (2015-16)",
+                                   survey == "MPHIA_2020" ~ "Malawi (2020-21)",
+                                   survey == "NAIIS_2018" ~ "Nigeria (2018)",
+                                   survey == "NAMPHIA_2017" ~ "Namibia (2017)",
+                                   survey == "RPHIA_2018" ~ "Rwanda (2018-19)",
+                                   survey == "SHIMS2_2016" ~ "Eswatini (2016-17)",
+                                   survey == "SHIMS3_2021"  ~ "Eswatini (2021)",
+                                   survey == "THIS_2016" ~ "Tanzania (2016-17)",
+                                   survey == "UPHIA_2016" ~ "Uganda (2016-17)",
+                                   survey == "ZAMPHIA_2016" ~ "Zambia (2016)",
+                                   survey == "ZAMPHIA_2021" ~ "Zambia (2021)",
+                                   survey == "ZIMPHIA_2015" ~ "Zimbabwe (2015-16)" ,
+                                   survey == "ZIMPHIA_2020" ~ "Zimbabwe (2019-20)",
+                                   TRUE ~ survey))
+
+table(all_distributions_female$country_names, useNA = "always")
+
+#' order estimates threshold from lowest to highest
+all_distributions_female$estimate_threshold <- factor(all_distributions_female$estimate_threshold, 
+                                                    levels = c("<50 copies/mL", "<200 copies/mL", "<400 copies/mL"))
+
+#' order distributions for plotting
+all_distributions_female$distribution <- factor(all_distributions_female$distribution,
+                                              levels = c("Reverse Weibull", "Weibull", "Pareto"))
+
+all_distributions_female$country_names <- factor(all_distributions_female$country_names,
+                                               levels = c("Côte d'Ivoire (2017-18)","Cameroon (2017-18)",
+                                                          "Nigeria (2018)","Uganda (2016-17)","Zimbabwe (2015-16)",
+                                                          "Tanzania (2016-17)","Ethiopia (2017-18)","Lesotho (2016-17)",
+                                                          "Zambia (2016)","Mozambique (2021-22)","Rwanda (2018-19)",
+                                                          "Zimbabwe (2019-20)","Kenya (2018-19)","Malawi (2015-16)",
+                                                          "Namibia (2017)","Eswatini (2016-17)","Lesotho (2019-20)",
+                                                          "Eswatini (2021)","Zambia (2021)","Malawi (2020-21)", "Botswana (2021)"))
+all_distributions_female <- all_distributions_female %>% mutate(sex = rep("Women"))
+
+## scatter plot
+ggplot(all_distributions_female, aes(x = empirical_estimate, y = adjusted_vls_estimate, color = country_names)) +
+  geom_point(size = 2) +
+  geom_errorbar(data = all_distributions_female, 
+                aes(y = adjusted_vls_estimate, ymin = adjusted_vls_lower_ci, 
+                    ymax = adjusted_vls_upper_ci), linewidth = 0.75, alpha = 0.3) + 
+  scale_x_continuous(limits = c(0.5, 1), labels = scales::percent) +
+  scale_y_continuous(limits = c(0.5, 1), labels = scales::percent) +
+  geom_abline(intercept = 0, slope = 1, col = "darkgrey", linewidth = 0.9, linetype = "dashed") +
+  theme_bw(base_size = 13) +
+  scale_color_manual(values = c("dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", 
+                                "black", "gold1", "skyblue2", "palegreen2", "#FDBF6F", "gray70",
+                                "maroon", "orchid1", "darkturquoise", "darkorange4", "brown",
+                                "cyan", "red", "gold4", "orange","blue")) +
+  facet_grid(estimate_threshold~distribution) + 
+  labs(x = "% viral load suppression (PHIA survey)",
+       y = "% viral load suppression (adjusted)", color = "",
+       tag = "B. Women") + 
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = rel(1), family = "sans"),
+        axis.title = element_text(size = rel(1.0), family = "sans"),
+        strip.text = element_text(size = rel(1.0), family = "sans", face = "bold"),
+        legend.text = element_text(size = rel(1.0), family = "sans"),
+        panel.grid = element_blank(),
+        plot.tag = element_text(size = rel(1.0), family = "sans", face = "bold"))
+
+# bind both men and women and plot
+all_dist_bothsexes <- bind_rows(all_distributions_female, all_distributions_male)
+all_dist_bothsexes_sub <- all_dist_bothsexes %>% filter(estimate_threshold == "<200 copies/mL")
+
+#' order distributions for plotting
+all_dist_bothsexes_sub$distribution <- factor(all_dist_bothsexes_sub$distribution,
+                                                levels = c("Reverse Weibull", "Weibull", "Pareto"))
+
+ggplot(all_dist_bothsexes_sub, aes(x = empirical_estimate, y = adjusted_vls_estimate, color = country_names)) +
+  geom_point(size = 2) +
+  geom_errorbar(data = all_dist_bothsexes_sub, aes(y = adjusted_vls_estimate, ymin = adjusted_vls_lower_ci,
+                                                   ymax = adjusted_vls_upper_ci),
+                size = 0.75, alpha = 0.3) + 
+  scale_x_continuous(limits = c(0.6, 1), labels = scales::percent) +
+  scale_y_continuous(limits = c(0.6, 1), labels = scales::percent) +
+  geom_abline(intercept = 0, slope = 1, col = "darkgrey", linewidth = 0.9, linetype = "dashed") +
+  theme_bw(base_size = 13) +
+  scale_color_manual(values = c("dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", 
+                                "black", "gold1", "skyblue2", "palegreen2", "#FDBF6F", "gray70",
+                                "maroon", "orchid1", "darkturquoise", "darkorange4", "brown",
+                                "cyan", "red", "gold4", "orange","blue")) +
+  facet_grid(sex~distribution) + 
+  labs(x = "% viral load suppression (PHIA survey)",
+       y = "% viral suppression (adjusted)",
+       title = "Conversion threshold (<200 copies/mL)",
+       color = "") + 
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = rel(1), family = "sans"),
+        axis.title = element_text(size = rel(1.0), family = "sans"),
+        strip.text = element_text(size = rel(1.0), family = "sans", face = "bold"),
+        plot.title = element_text(size = rel(1.0), family = "sans", face = "bold"),
+        legend.text = element_text(size = rel(1.0), family = "sans"),
+        panel.grid = element_blank(),
+        panel.spacing.x = unit(1, "lines"))
+
+
+# number of PLHIV on ART in included surveys
+allsurveys <- ssa_surveys_art %>% 
+  group_by(country) %>%
+  summarise(n = n())
+
+PHIA_vls_estimates[which.max(PHIA_vls_estimates$estimate_1000),"country"]
+PHIA_vls_estimates[which.max(PHIA_vls_estimates$estimate_1000),"estimate_1000"]
+
+PHIA_vls_estimates[which.min(PHIA_vls_estimates$estimate_1000),"country"]
+PHIA_vls_estimates[which.min(PHIA_vls_estimates$estimate_1000),"estimate_1000"]
+
+
+vls_est <- data.frame(survey = PHIA_vls_estimates$survey,
+           VLS = paste0(round(PHIA_vls_estimates$estimate_1000,3)*100, " (", 
+                        round(PHIA_vls_estimates$lower_ci_1000,3)*100, ", ",
+                        round(PHIA_vls_estimates$upper_ci_1000,3)*100, ")"))
+
+
+# appendix table
+table(ssa_surveys_art$country, useNA = "always")
+# lower limit of detect of surveys
+head(table(ssa_surveys_art$resultvlc, useNA = "always"), n = 20)
+tail(table(ssa_surveys_art$resultvlc, useNA = "always"), n = 20)
+ssa_surveys_art %>% 
+  filter(resultvlc %in% c("Target Not Detected")) %>%
+  select(country) %>%
+  distinct()
+
+table(ssa_surveys_art$country)
+ssa_surveys_art %>% 
+  group_by(country) %>%
+  filter(resultvlc %in% c("Target Not Detected")) %>%
+  summarise(n())
+
+
+# countries reporting different thresholds in spectrum
+spectrum_vl <- read.csv(file = "C:/Users/oedun/OneDrive - Imperial College London/R projects/viremia_thresholds/data/spectrum-vl-entered-data-2024_2024-11-19.csv")
+
+names(spectrum_vl)
+table(spectrum_vl$is_restricted, useNA = "always")
+table(spectrum_vl$year, useNA = "always")
+
+# four countries with multiple spectrum files
+spectrum_vl %>% 
+  filter(is_restricted == FALSE & year == "2023") %>%
+  group_by(country) %>%
+  summarise(n = n()) %>%
+  filter(n > 2)
+
+# excluding the four countries we have 110 countries reporting in 2023, 21 reported at other thresholds
+spectrum_vl %>% 
+  filter(is_restricted == FALSE & year == "2023") %>%
+  filter(!country %in% c("Ethiopia","Kenya","Zimbabwe","Republic of Moldova")) %>%
+  group_by(vls_threshold) %>%
+  summarise(n_distinct(country))
+
+# all four countries report at <1000
+spectrum_vl %>% 
+  filter(is_restricted == FALSE & year == "2023") %>%
+  filter(country %in% c("Ethiopia","Kenya","Zimbabwe","Republic of Moldova")) %>%
+  select(vls_threshold, country, vl_suppressed_female15pl)
+
+
+# accounting for countries with actual data
+# excluding the four countries we have 91 countries reporting in 2023, 13 reported at other thresholds
+spectrum_vl %>% 
+  filter(is_restricted == FALSE & year == "2023") %>%
+  filter(!country %in% c("Ethiopia","Kenya","Zimbabwe","Republic of Moldova")) %>%
+  filter(!is.na(vl_suppressed_female15pl)|!is.na(vl_suppressed_male15pl)|!is.na(vl_suppressed_child)) %>%
+  group_by(vls_threshold) %>%
+  summarise(n_distinct(country))
+
+# grouped by year
+spectrum_vl %>% 
+  filter(is_restricted == FALSE) %>%
+  filter(!country %in% c("Ethiopia","Kenya","Zimbabwe","Republic of Moldova")) %>%
+  filter(!is.na(vl_suppressed_female15pl)|!is.na(vl_suppressed_male15pl)|!is.na(vl_suppressed_child)) %>%
+  group_by(year, vls_threshold) %>%
+  summarise(n_distinct(country)) %>% print(n = Inf)
+
+spectrum_vl %>% 
+  filter(is_restricted == FALSE & year == "2023") %>%
+  filter(!country %in% c("Ethiopia","Kenya","Zimbabwe","Republic of Moldova")) %>%
+  filter(is.na(vl_suppressed_female15pl)&is.na(vl_suppressed_male15pl)&is.na(vl_suppressed_child)) %>%
+  select(vls_threshold, country, vl_suppressed_female15pl, vl_suppressed_male15pl, vl_suppressed_child,
+         vl_tested_child,vl_tested_female15pl,vl_tested_male15pl)
+
+# count number of people in each VL bin
+bins <- c(-Inf, 50, 200, 400, 1000, Inf)
+labels <- c("<50", "50-199", "200-399", "400-999", ">=1000")
+
+# Count and proportion in wide format
+bin_summary <- ssa_surveys_art %>%
+  mutate(
+    vl_bin = cut(resultvlc_numeric, breaks = bins, labels = labels, right = FALSE)
+  ) %>%
+  group_by(country, vl_bin) %>%
+  summarise(count = n(), .groups = "drop_last") %>%
+  mutate(prop = count / sum(count),
+         prop = round(prop*100, 3)) %>%
+  ungroup() %>%
+  tidyr::pivot_wider(
+    names_from = vl_bin,
+    values_from = c(count, prop),
+    values_fill = 0
+  )
+
+print(bin_summary)
+write.csv(bin_summary, file = "C:/Users/oedun/OneDrive - Imperial College London/R projects/viremia_thresholds/data/bin_summary.csv")
+
+
+
+# how many surveys was the adjusted VLS an over/underestimate
+all_distributions %>% 
+  filter(estimate_threshold == "<400 copies/mL" & distribution == "Pareto") %>%
+  filter(adjusted_vls_estimate > empirical_estimate) %>%
+  select(survey, distribution, estimate_threshold, adjusted_vls_estimate, empirical_estimate)
+
+# calculate the average bias
+all_distributions %>% 
+  filter(estimate_threshold == "<50 copies/mL" & distribution == "Reverse Weibull") %>%
+  mutate(average_bias = adjusted_vls_estimate - empirical_estimate) %>%
+  summarise(mean(average_bias)*100)
