@@ -1,7 +1,7 @@
-# Project title
+# Title
 Validating HIV viral suppression threshold adjustments for comparable estimates using data from nationally representative household surveys in sub-Saharan Africa
 
-# Project description
+# Description
 Using nationally representative Population-based HIV Impact Assessment surveys (PHIAs) from sub-Saharan Africa this analyses aimed to (1) evaluate the models estimated by Johnson et al. in African populations; (2) compare alternative statistical models for describing observed VL distributions; and (3) assess sex and age differences in VL distribution parameters among PLHIV on ART in sub-Saharan Africa. 
 
 # Setup 
@@ -12,7 +12,7 @@ The PHIA data used in this analysis are available upon request from the PHIA dat
 
 UNAIDS Estimates 2024 Spectrum files were sources from (https://hivtools.unaids.org/spectrum-file-request/)  
 
-# Usage and project structure
+# Usage and structure
 1. Data preparation: data preparation code are in data_preparation.R and include code to read in surveys, functions required to clean data and define core variables
 2. Data exploration: data exploration code and code for plotting core figure are in exploration and figures script
 3. Compute survey weighted viral load suppression estimates for all surveys using survey_vls_estimates and by age and sex using survey_vls_estimates_age_sex
