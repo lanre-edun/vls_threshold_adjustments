@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/1170620682.svg)](https://doi.org/10.5281/zenodo.18905261)
 # Title
 Validating HIV viral suppression threshold adjustments for comparable estimates using data from nationally representative household surveys in sub-Saharan Africa
 
